@@ -21,7 +21,7 @@ public class Client extends Thread {
             if (banker.remaining() == 0) {
                 banker.release(nUnits);
             } else {
-                banker.request(Math.random() * banker.remaining());
+                banker.request((int) (Math.random() * banker.remaining())); //idk what to put here!!!!!!!!!!! :D
             }
             try {
                 Thread.sleep((long)(Math.random() * (maxSleepMillis - minSleepMillis)) + minSleepMillis);
