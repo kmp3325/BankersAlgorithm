@@ -9,7 +9,7 @@ public class Driver {
         Banker banker = new Banker(nResources);
         Client[] clients = new Client[nClients];
         for (int i = 0; i < nClients; i++) {
-            clients[i] = new Client("Client " + i, banker, 5, 10, minSleepUnits, maxSleepUnits);
+            clients[i] = new Client("Client " + i, banker, 4, 10, minSleepUnits, maxSleepUnits);
         }
         for (Client c : clients) {
             c.start();
