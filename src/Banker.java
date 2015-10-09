@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
+import java.util.*;
 
 public class Banker {
 	
@@ -19,12 +16,12 @@ public class Banker {
 		if(nUnits < 0 || nUnits > unitsLeft || claimMap.containsKey(Thread.currentThread())){
 			System.exit(1);
 		}
-		int[] temp = claimMap.get(Thread.currentThread());
+		int[] temp = new int[2];
 		temp[0] = nUnits;
 		temp[1] = 0;
 		claimMap.put(Thread.currentThread(), temp);
-		System.out.println("Thread " + Thread.currentThread().getName()
-				+ "sets  a claim for " + nUnits + " units.");
+		System.out.println(Thread.currentThread().getName()
+				+ " sets a claim for " + nUnits + " units.");
 		
 	}
 	
@@ -35,22 +32,24 @@ public class Banker {
 		}
 		else
 		{
-			int temp[] = claimMap.get(Thread.currentThread());
-	
-			System.out.println("Thead " + Thread.currentThread().getName()
-					+ "requests " + nUnits  + " units.");
-			@SuppressWarnings("unchecked")
-			HashMap<Thread, int[]> claimMapCopy = (HashMap<Thread, int[]>) claimMap.clone();
+			System.out.println(Thread.currentThread().getName()
+					+ " requests " + nUnits  + " units.");
+
 			while(true){
+				HashMap<Thread, int[]> claimMapCopy = clone(claimMap);
+				int[] temp = claimMapCopy.get(Thread.currentThread());
+				temp[1] += nUnits;
+				claimMapCopy.put(Thread.currentThread(), temp);
 				if(safeState(unitsLeft - nUnits, claimMapCopy.values())){
-					System.out.println("Thread " + Thread.currentThread().getName()
+					System.out.println(Thread.currentThread().getName()
 						+ " has " + nUnits + " units allocated. ");
 					unitsLeft = unitsLeft - nUnits;
-					// Give units to claim
+					temp[1] += nUnits;
+					claimMap.put(Thread.currentThread(), temp);
 					return true;
 				}
 			
-				System.out.println("Thead " + Thread.currentThread().getName()
+				System.out.println(Thread.currentThread().getName()
 						+ " waits.");
 				try {
 					wait();
@@ -58,11 +57,22 @@ public class Banker {
 					e.printStackTrace();
 					return false;
 				}
-				System.out.println("Thread " + Thread.currentThread().getName()
+				System.out.println(Thread.currentThread().getName()
 						+ " awakened.");
 			}
 		}
 		return true;
+	}
+
+	private HashMap<Thread, int[]> clone(HashMap<Thread, int[]> toClone) {
+		HashMap<Thread, int[]> clone = new HashMap<Thread, int[]>();
+		for (Map.Entry<Thread, int[]> entry : toClone.entrySet()) {
+			int[] temp = new int[2];
+			temp[0] = entry.getValue()[0];
+			temp[1] = entry.getValue()[1];
+			clone.put(entry.getKey(), temp);
+		}
+		return clone;
 	}
 
 	public synchronized void release(int nUnits){
@@ -71,8 +81,8 @@ public class Banker {
 		if(nUnits < 0 || !(claimMap.containsKey(t)) || temp[0] == 0){
 			System.exit(1);
 		}
-		System.out.println("Thread " + Thread.currentThread().getName()
-				+ "releases " + nUnits + " units.");
+		System.out.println(Thread.currentThread().getName()
+				+ " releases " + nUnits + " units.");
 		temp[1] = temp[1] - nUnits;
 		this.unitsLeft += nUnits;
 		claimMap.put(t,temp);
@@ -80,17 +90,17 @@ public class Banker {
 		return;
 	}
 	
-	public int allocated(){
+	public synchronized int allocated(){
 		
 		int[] temp = claimMap.get(Thread.currentThread());
 		return temp[1];
 		
 	}
 	
-	public int remaining(){
+	public synchronized int remaining(){
 		
 		int[] temp = claimMap.get(Thread.currentThread());
-		return temp[0];
+		return temp[0] - temp[1];
 	}
 	
 	public boolean safeState(int units, Collection<int[]> claimMap){
@@ -101,10 +111,10 @@ public class Banker {
 			@Override
 			public int compare(int[] arg0, int[] arg1) {
 				if(arg0[0] - arg0[1] > arg1[0] - arg1[1]){
-					return 1;
+					return -1;
 				}
 				if(arg0[0] - arg0[1] < arg1[0] - arg1[1]){
-					return -1;
+					return 1;
 				}
 				if(arg0[0] - arg0[1] == arg1[0] - arg1[1]){
 					return 0;

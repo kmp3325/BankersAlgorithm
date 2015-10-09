@@ -19,9 +19,9 @@ public class Client extends Thread {
         banker.setClaim(nUnits);
         for (int i = 0; i < nRequests; i++) {
             if (banker.remaining() == 0) {
-                banker.release(nUnits);
+                banker.release(banker.allocated());
             } else {
-                banker.request((int) (Math.random() * banker.remaining())); //idk what to put here!!!!!!!!!!! :D
+                banker.request((int) (Math.random() * banker.remaining()) + 1);
             }
             try {
                 Thread.sleep((long)(Math.random() * (maxSleepMillis - minSleepMillis)) + minSleepMillis);
