@@ -109,17 +109,20 @@ public class Banker {
 				if(arg0[0] - arg0[1] == arg1[0] - arg1[1]){
 					return 0;
 				}
+				else{
+					return -10000;
+				}
 			}
 			
 		});
 		for (int i = 0; i < sortedList.size() - 1; i++){
 			
-			if(sortedList.get(i)[0] > unitsOnHand){
+			if(sortedList.get(i)[0] - sortedList.get(i)[1] > units){
 				return false;
 			}
 			else
 			{
-				units += allocation[i];
+				units += sortedList.get(i)[1];
 				
 			}
 		}
