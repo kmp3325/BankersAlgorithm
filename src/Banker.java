@@ -1,4 +1,5 @@
 import java.util.HashMap;
+import java.util.Set;
 
 public class Banker {
 	
@@ -13,46 +14,53 @@ public class Banker {
 	}
 	
 	public void setClaim(int nUnits){
-		if(nUnits < 0 || nUnits > unitsLeft || claimMap.containsKey(Thread.currentThread();)){
+		if(nUnits < 0 || nUnits > unitsLeft || claimMap.containsKey(Thread.currentThread())){
 			System.exit(1);
 		}
-		else
-		{
-			temp[0] = nUnits;
-			temp[1] = 0;
-			claimMap.put(Thread.currentThread(), temp);
-			System.out.println("Thread " + Thread.currentThread().getName()
-					+ "sets  a claim for " + nUnits + " units.");
-		}
+		int[] temp = claimMap.get(Thread.currentThread());
+		temp[0] = nUnits;
+		temp[1] = 0;
+		claimMap.put(Thread.currentThread(), temp);
+		System.out.println("Thread " + Thread.currentThread().getName()
+				+ "sets  a claim for " + nUnits + " units.");
+		
 	}
 	
 	public synchronized boolean request(int nUnits){
 		
-		if(!(claimMap.containsKey(Thread.currentThread();)){
-			System.exit(1);
+		if(!(claimMap.containsKey(Thread.currentThread()))){
+			return false;
 		}
 		else
 		{
 			int temp[] = claimMap.get(Thread.currentThread());
 			if(temp[0] > nUnits || nUnits < 0){
-				System.exit(1);
+				return false;
 			}else{
 		
 				System.out.println("Thead " + Thread.currentThread().getName()
 						+ "requests " + nUnits  + " units.");
-				if(safeState(unitsLeft, claimMap.clone())){
-					System.out.println("Thread " + Thread.currentThread().getName()
+				HashMap<Thread, int[]> claimMapCopy = claimMap;
+				while(true){
+					if(safeState(unitsLeft, claimMapCopy)){
+						System.out.println("Thread " + Thread.currentThread().getName()
 							+ " has " + nUnits + " units allocated. ");
-					unitsLeft = unitsLeft - nUnits;
+						unitsLeft = unitsLeft - nUnits;
+						return true;
+					}
+			
+				System.out.println("Thead " + Thread.currentThread().getName()
+						+ " waits.");
+				try {
+					Thread.currentThread().wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					return false;
 				}
-				else
-				{
-					System.out.println("Thead " + Thread.currentThread().getName()
-							+ " waits.");
-					Thread.sleep();
+				System.out.println("Thread " + Thread.currentThread().getName()
+						+ " awakened.");
 				}
 			}
-			return true;
 		}
 	}
 
@@ -84,22 +92,32 @@ public class Banker {
 		return temp[0];
 	}
 	
-	public boolean safeState(int unitsOnHand, HashMap<Thread, int[]> claimMap){
+	public boolean safeState(int units, HashMap<Thread, int[]> claimMap){
 		
+		int unitsOnHand = units;
 		int size = claimMap.size();
 		int[] allocation = new int[size];
 		int[] remaining = new int[size];
 		Set<Thread> threadSet = claimMap.keySet();
-		
 		int count = 0;
-		while(count < size){
-			
+		for(Thread t : threadSet){
+			int[] temp = claimMap.get(t);
+			allocation[count] = temp[1];
+			remaining[count] = temp[0];
+			count++;
 		}
-		
-		for (int i = 0; i < array.length - 1; i++){
+		for (int i = 0; i < allocation.length - 1; i++){
 			
-			if(array[i].re)
+			if(remaining[i] > unitsOnHand){
+				return false;
+			}
+			else
+			{
+				units += allocation[i];
+				
+			}
 		}
+		return true;
 	}
 	
 }
